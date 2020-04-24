@@ -31,7 +31,6 @@ public class Page {
         this.presence_absence = presence_absence;
     }
 
-
     public void setR(boolean r) {
         this.r = r;
     }
