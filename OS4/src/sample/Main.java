@@ -24,8 +24,9 @@ public class Main extends Application {
         directories.add(directory);
         TreeView<Object> treeView = new TreeView<>();
         treeView.setPrefSize(200, 500);
-        FileManager fm = new FileManager(treeView, directory.getDir_name(), directories);
-        draw(root, null);
+        treeView.setRoot(new TreeItem<>(directory));
+        FileManager fm = new FileManager(treeView, directories);
+        draw(root);
         root.getChildren().add(treeView);
 
         Button buttonAddFile = new Button();
@@ -63,13 +64,20 @@ public class Main extends Application {
             buttonAccept.setLayoutY(100);
 
             buttonAccept.setOnMouseClicked(event1 -> {
-                File file = new File(Integer.parseInt(textFieldFileSize.getText()), fileSystem.getBlockSize());
-                file.setFile_name(textFieldFileName.getText());
-                fm.addFile(file);
-                fileSystem.putFile(file);
-
-                draw(root, null);
-                stage.close();
+                try{
+                    File file = new File(Integer.parseInt(textFieldFileSize.getText()), fileSystem.getBlockSize());
+                    file.setFile_name(textFieldFileName.getText());
+                    fileSystem.putFile(file);
+                    fm.addFile(file);
+                    draw(root);
+                    stage.close();
+                }catch (Exception ex){
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Ошибка");
+                    alert.setHeaderText(ex.getMessage());
+                    alert.setContentText("Освободите место!");
+                    alert.showAndWait();
+                }
             });
 
             rootFormAddFile.getChildren().addAll(textFieldFileName, textFieldFileSize, labelFileName,
@@ -128,7 +136,7 @@ public class Main extends Application {
         buttonRemoveFile.setOnMouseClicked(event -> {
             if(treeView.getSelectionModel().getSelectedItem().getValue().getClass().getSimpleName().equals("File")){
                 fileSystem.cleanFileBlocks((File)treeView.getSelectionModel().getSelectedItem().getValue());
-                draw(root, null);
+                draw(root);
             }
             fm.remove();
         });
@@ -176,16 +184,24 @@ public class Main extends Application {
                 buttonAddCatalog.setDisable(false);
                 buttonAddFile.setDisable(false);
                 buttonReplaceFile.setDisable(true);
+                fileSystem.dropSelection();
+                fileSystem.directorySelected(newValue);
+                draw(root);
             }else if(newValue.getValue().getClass().getSimpleName().equals("Directory")){
                 buttonAddFile.setDisable(false);
                 buttonRemoveFile.setDisable(false);
                 buttonAddCatalog.setDisable(false);
                 buttonReplaceFile.setDisable(false);
+                fileSystem.dropSelection();
+                fileSystem.directorySelected(newValue);
+                draw(root);
             }else{
                 buttonRemoveFile.setDisable(false);
                 buttonAddFile.setDisable(true);
                 buttonAddCatalog.setDisable(true);
                 buttonReplaceFile.setDisable(false);
+                fileSystem.fileSelected((File)newValue.getValue());
+                draw(root);
             }
         });
 
@@ -233,8 +249,7 @@ public class Main extends Application {
 
         buttonAccept.setOnMouseClicked(event -> {
             dir.setDir_name(textFieldRootName.getText());
-            fileSystem = new FileSystem(Integer.parseInt(textFieldBlockSize.getText()),
-                    Integer.parseInt(textFieldRootSize.getText()), directories);
+            fileSystem = new FileSystem(Integer.parseInt(textFieldBlockSize.getText()), Integer.parseInt(textFieldRootSize.getText()));
             rectangles = new Rectangle[fileSystem.getBitArray().length];
             stage.close();
         });
@@ -249,7 +264,7 @@ public class Main extends Application {
         return dir;
     }
 
-    private void draw(Group baseGroup, TreeItem<Object> file){
+    private void draw(Group baseGroup){
         try{
             baseGroup.getChildren().removeAll(rectangles);
         }catch (Exception ex){}
@@ -258,35 +273,33 @@ public class Main extends Application {
         }
         System.out.println();
         for(int i = 0; i < fileSystem.getBitArray().length; i++){
-            if(file == null){
-                if(rectangles[i] == null)
-                    rectangles[i] = new Rectangle();
+            if(rectangles[i] == null)
+                rectangles[i] = new Rectangle();
 
-                if(fileSystem.getMaskArray()[i] == 1) {
-                    rectangles[i].setHeight(10);
-                    rectangles[i].setWidth(10);
-                    rectangles[i].setFill(Paint.valueOf("#19ff19"));
-                    rectangles[i].setX(11 * (i % 50) + 300);
-                    rectangles[i].setY(((int) i / 50) * 11 + 100);
-                }else if(fileSystem.getMaskArray()[i] == 2) {
-                    rectangles[i].setHeight(10);
-                    rectangles[i].setWidth(10);
-                    rectangles[i].setFill(Paint.valueOf("0000ff"));
-                    rectangles[i].setX(11 * (i % 50) + 300);
-                    rectangles[i].setY(((int) i / 50) * 11 + 100);
-                }else if(fileSystem.getMaskArray()[i] == 3){
-                    rectangles[i].setHeight(10);
-                    rectangles[i].setWidth(10);
-                    rectangles[i].setFill(Paint.valueOf("#ff0000"));
-                    rectangles[i].setX(11 * (i % 50) + 300);
-                    rectangles[i].setY(((int) i / 50) * 11 + 100);
-                }else{
-                    rectangles[i].setHeight(10);
-                    rectangles[i].setWidth(10);
-                    rectangles[i].setFill(Paint.valueOf("#cccccc"));
-                    rectangles[i].setX(11 * (i % 50) + 300);
-                    rectangles[i].setY( ((int)i/50) * 11 + 100);
-                }
+            if(fileSystem.getMaskArray()[i] == 1) {
+                rectangles[i].setHeight(10);
+                rectangles[i].setWidth(10);
+                rectangles[i].setFill(Paint.valueOf("#19ff19"));
+                rectangles[i].setX(11 * (i % 50) + 300);
+                rectangles[i].setY(((int) i / 50) * 11 + 100);
+            }else if(fileSystem.getMaskArray()[i] == 2) {
+                rectangles[i].setHeight(10);
+                rectangles[i].setWidth(10);
+                rectangles[i].setFill(Paint.valueOf("0000ff"));
+                rectangles[i].setX(11 * (i % 50) + 300);
+                rectangles[i].setY(((int) i / 50) * 11 + 100);
+            }else if(fileSystem.getMaskArray()[i] == 3){
+                rectangles[i].setHeight(10);
+                rectangles[i].setWidth(10);
+                rectangles[i].setFill(Paint.valueOf("#ff0000"));
+                rectangles[i].setX(11 * (i % 50) + 300);
+                rectangles[i].setY(((int) i / 50) * 11 + 100);
+            }else{
+                rectangles[i].setHeight(10);
+                rectangles[i].setWidth(10);
+                rectangles[i].setFill(Paint.valueOf("#cccccc"));
+                rectangles[i].setX(11 * (i % 50) + 300);
+                rectangles[i].setY( ((int)i/50) * 11 + 100);
             }
         }
         baseGroup.getChildren().addAll(rectangles);

@@ -19,9 +19,8 @@ public class FileManager {
     private HashMap<Directory, TreeItem<Object>> refTable;
     private ObservableList<Directory> directories;
 
-    public FileManager(TreeView<Object> treeView, String root, ObservableList<Directory> directoryArrayList) throws FileNotFoundException {
+    public FileManager(TreeView<Object> treeView, ObservableList<Directory> directoryArrayList) throws FileNotFoundException {
         this.treeView = treeView;
-        this.treeView.setRoot(new TreeItem<Object>(root));
         this.refTable = new HashMap<>();
         this.directories = directoryArrayList;
         selectionModel = treeView.getSelectionModel();
