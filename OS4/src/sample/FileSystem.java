@@ -1,9 +1,6 @@
 package sample;
 
-import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
-
-import java.util.ArrayList;
 
 public class FileSystem {
     private int[] bitArray;
@@ -29,9 +26,14 @@ public class FileSystem {
         if(getCountAvailableBlocks() >= file.getCountBlocks()){
             int count = 0;
             System.out.println("file blocks = " + file.getCountBlocks());
+            FileBlock current = file.getHeadBlock();
             for(int i = 0; i< bitArray.length; i++){
                 if(count < file.getCountBlocks() && bitArray[i] == 0){
-                    file.getLinkedList().addLast(i);
+                    if (count != 0) {
+                        current.setNext(new FileBlock());
+                        current = current.getNext();
+                    }
+                    current.setIndex(i);
                     bitArray[i] = 1;
                     maskArray[i] = 2;
                     count++;
@@ -45,16 +47,20 @@ public class FileSystem {
     }
 
     public void cleanFileBlocks(File file){
-        for(int i = 0; i<file.getLinkedList().size(); i++){
-            bitArray[file.getLinkedList().get(i)] = 0;
-            maskArray[file.getLinkedList().get(i)] = 0;
+        FileBlock current = file.getHeadBlock();
+        while (current != null){
+            bitArray[current.getIndex()] = 0;
+            maskArray[current.getIndex()] = 0;
+            current = current.getNext();
         }
     }
 
     public void fileSelected(File file){
         dropSelection();
-        for(int i : file.getLinkedList()){
-            maskArray[i] = 3;
+        FileBlock current = file.getHeadBlock();
+        while (current != null){
+            maskArray[current.getIndex()] = 3;
+            current = current.getNext();
         }
     }
 
@@ -64,8 +70,10 @@ public class FileSystem {
                 if(item.getValue().getClass().getSimpleName().equals("Directory"))
                     directorySelected(item);
                 else{
-                    for(int i : ((File)item.getValue()).getLinkedList()){
-                        maskArray[i] = 3;
+                    FileBlock current = ((File)item.getValue()).getHeadBlock();
+                    while (current != null){
+                        maskArray[current.getIndex()] = 3;
+                        current = current.getNext();
                     }
                 }
             }

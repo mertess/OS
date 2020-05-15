@@ -4,16 +4,16 @@ import java.util.LinkedList;
 
 public class File {
     private String file_name;
-    private LinkedList<Integer> linkedList;
+    private FileBlock head;
     private int countBlock;
 
     public File(int size, int blockSize){
         countBlock = size/blockSize;
-        this.linkedList = new LinkedList<Integer>();
+        this.head = new FileBlock();
     }
 
-    public LinkedList<Integer> getLinkedList() {
-        return linkedList;
+    public FileBlock getHeadBlock() {
+        return head;
     }
 
     public String getFile_name() {
